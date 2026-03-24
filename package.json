@@ -1,0 +1,6 @@
+{
+  "name": "elecsy-links",
+  "version": "1.0.0",
+  "description": "YouTube link shortener for elecsy.shop",
+  "private": true
+}
