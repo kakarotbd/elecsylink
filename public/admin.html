@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -219,9 +220,15 @@
   async function apiFetch(method, body) {
     const opts = { method, headers: { Authorization: `Bearer ${PASSWORD}`, 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
-    const r = await fetch(API, opts);
-    if (r.status === 401) throw new Error('auth');
-    return r.json();
+    try {
+      const r = await fetch(API, opts);
+      if (r.status === 401) throw new Error('auth');
+      const text = await r.text();
+      try { return JSON.parse(text); } catch { return { error: 'Server error: ' + text.substring(0, 100) }; }
+    } catch (e) {
+      if (e.message === 'auth') throw e;
+      return { error: e.message };
+    }
   }
 
   async function loadLinks() {
@@ -329,7 +336,7 @@
       width: 200,
       height: 200,
       colorDark: '#e63946',
-      colorLight: '#0f0f14',
+      colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.H
     });
     document.getElementById('qrModal').classList.add('open');
