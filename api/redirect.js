@@ -1,18 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+const { kv } = require('@vercel/kv');
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { slug } = req.query;
-
   if (!slug) return res.redirect(302, '/');
 
-  let links = {};
   try {
-    links = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'links.json'), 'utf8'));
+    const url = await kv.get(`link:${slug}`);
+    if (url) return res.redirect(302, url);
   } catch (e) {}
-
-  const target = links[slug];
-  if (target) return res.redirect(302, target);
 
   return res.status(404).send(`<!DOCTYPE html>
 <html>
