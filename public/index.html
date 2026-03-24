@@ -3,183 +3,358 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>elecsy.shop — Link Shortener</title>
+  <title>Admin — elecsy.shop</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #070709;
-      --surface: #0f0f14;
-      --border: #1e1e2e;
-      --accent: #e63946;
-      --accent2: #ff6b6b;
-      --text: #e8e8f0;
-      --muted: #555570;
+      --bg: #070709; --surface: #0f0f14; --surface2: #141420;
+      --border: #1e1e2e; --accent: #e63946; --accent2: #ff6b6b;
+      --text: #e8e8f0; --muted: #555570; --green: #4ade80;
     }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
+    body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
     .bg-grid {
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.4;
-      pointer-events: none;
+      position: fixed; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px; opacity: 0.3; pointer-events: none;
     }
 
-    .glow {
-      position: fixed;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(230,57,70,0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
+    /* LOGIN */
+    #loginScreen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+    .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; width: min(380px, 90vw); animation: fadeUp .4s ease both; }
+    .login-box h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; }
+    .login-box p { color: var(--muted); font-size: .8rem; font-family: 'Space Mono',monospace; margin-bottom: 1.5rem; }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 2rem;
-    }
+    /* LAYOUT */
+    #mainApp { display: none; }
+    header { border-bottom: 1px solid var(--border); padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(7,7,9,.92); backdrop-filter: blur(10px); z-index: 10; }
+    header .logo { font-size: 1.2rem; font-weight: 800; }
+    header .logo span { color: var(--accent); }
+    .main-content { max-width: 860px; margin: 0 auto; padding: 2rem; }
 
-    .badge {
-      display: inline-block;
-      background: rgba(230,57,70,0.1);
-      border: 1px solid rgba(230,57,70,0.3);
-      color: var(--accent2);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      padding: 4px 14px;
-      border-radius: 100px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      animation: fadeUp 0.6s ease both;
-    }
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+    .stat-card .num { font-size: 2rem; font-weight: 800; color: var(--accent); }
+    .stat-card .label { font-size: .72rem; color: var(--muted); font-family: 'Space Mono',monospace; margin-top: 4px; }
 
-    h1 {
-      font-size: clamp(3rem, 10vw, 7rem);
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -0.03em;
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h3 { font-size: .72rem; font-weight: 700; margin-bottom: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-family: 'Space Mono',monospace; }
 
-    h1 span {
-      color: var(--accent);
-      position: relative;
-    }
+    /* FORM */
+    .add-form { display: flex; flex-direction: column; gap: .85rem; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: .72rem; color: var(--muted); font-family: 'Space Mono',monospace; }
 
-    h1 span::after {
-      content: '';
-      position: absolute;
-      bottom: 4px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--accent);
-      transform: scaleX(0);
-      animation: underlineIn 0.5s ease 0.8s both;
-    }
+    .slug-wrap { display: flex; gap: .5rem; }
+    .prefix-box { display: flex; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 1; transition: border-color .2s; }
+    .prefix-box:focus-within { border-color: var(--accent); }
+    .prefix-box .pre { padding: .65rem .75rem; background: var(--border); color: var(--muted); font-family: 'Space Mono',monospace; font-size: .8rem; }
+    .prefix-box input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'Space Mono',monospace; font-size: .85rem; padding: .65rem .75rem; }
 
-    .sub {
-      color: var(--muted);
-      font-size: 1rem;
-      margin-top: 1rem;
-      font-family: 'Space Mono', monospace;
-      animation: fadeUp 0.6s ease 0.2s both;
+    input[type=text], input[type=url], input[type=password] {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: .65rem .85rem; color: var(--text); font-family: 'Space Mono',monospace;
+      font-size: .85rem; outline: none; width: 100%; transition: border-color .2s;
     }
+    input:focus { border-color: var(--accent); }
 
-    .domain-display {
-      margin-top: 3rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem 2.5rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 1rem;
-      animation: fadeUp 0.6s ease 0.3s both;
-    }
+    button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: .65rem 1.2rem; font-family: 'Syne',sans-serif; font-weight: 700; font-size: .9rem; cursor: pointer; transition: all .2s; white-space: nowrap; }
+    button:hover { background: var(--accent2); transform: translateY(-1px); }
+    button.ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+    button.ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); transform: none; }
+    button.sm { padding: 5px 11px; font-size: .73rem; border-radius: 6px; }
+    button.danger { background: transparent; border: 1px solid #ff444455; color: #ff6666; }
+    button.danger:hover { background: rgba(255,68,68,.12); transform: none; }
 
-    .domain-display .dot {
-      width: 8px;
-      height: 8px;
-      background: #4ade80;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #4ade80;
-      animation: pulse 2s ease infinite;
-    }
+    /* LINKS */
+    .links-list { display: flex; flex-direction: column; gap: .55rem; }
+    .link-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: .9rem 1rem; transition: border-color .2s; }
+    .link-item:hover { border-color: rgba(230,57,70,.3); }
+    .link-top { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .link-slug { font-family: 'Space Mono',monospace; font-size: .85rem; color: var(--accent2); min-width: 110px; flex-shrink: 0; }
+    .link-url { flex: 1; font-family: 'Space Mono',monospace; font-size: .72rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .link-actions { display: flex; gap: .4rem; flex-shrink: 0; flex-wrap: wrap; }
 
-    .domain-display code {
-      font-family: 'Space Mono', monospace;
-      font-size: 1.1rem;
-      color: var(--text);
-    }
+    /* RENAME ROW */
+    .rename-row { display: none; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .rename-row.open { display: flex; }
+    .rename-row input { max-width: 180px; flex: 1; }
 
-    .domain-display code strong {
-      color: var(--accent);
-    }
+    /* QR MODAL */
+    #qrModal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.78); display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    #qrModal.open { display: flex; }
+    .qr-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; text-align: center; animation: fadeUp .3s ease both; min-width: 260px; }
+    .qr-box h4 { font-size: 1rem; font-weight: 800; margin-bottom: .3rem; }
+    .qr-slug { font-family: 'Space Mono',monospace; font-size: .72rem; color: var(--accent2); margin-bottom: 1.2rem; word-break: break-all; }
+    #qrCanvas { display: flex; justify-content: center; margin-bottom: 1.2rem; }
+    #qrCanvas canvas { border-radius: 8px; }
+    .qr-actions { display: flex; gap: .6rem; justify-content: center; }
 
-    .admin-link {
-      margin-top: 2rem;
-      display: inline-block;
-      color: var(--muted);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: all 0.2s;
-      animation: fadeUp 0.6s ease 0.4s both;
-    }
-    .admin-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+    /* TOAST */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: .8rem 1.2rem; font-family: 'Space Mono',monospace; font-size: .78rem; color: var(--green); z-index: 999; opacity: 0; transform: translateY(10px); transition: all .3s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { color: var(--accent2); }
+    .empty { text-align: center; padding: 2rem; color: var(--muted); font-family: 'Space Mono',monospace; font-size: .8rem; }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes underlineIn {
-      to { transform: scaleX(1); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
   </style>
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <div class="glow"></div>
+<div class="bg-grid"></div>
 
-  <div class="container">
-    <div class="badge">⚡ YouTube Link Shortener</div>
-    <h1>elecsy<span>.shop</span></h1>
-    <p class="sub">// ছোট link, বড় impact</p>
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>Admin Panel</h2>
+    <p>// elecsy.shop link manager</p>
+    <div class="field" style="margin-bottom:1rem">
+      <label>PASSWORD</label>
+      <input type="password" id="passInput" placeholder="password দাও..." onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" style="width:100%">→ Login</button>
+  </div>
+</div>
 
-    <div class="domain-display">
-      <div class="dot"></div>
-      <code>elecsy.shop/<strong>video221</strong> → YouTube</code>
+<!-- MAIN -->
+<div id="mainApp">
+  <header>
+    <div class="logo">elecsy<span>.shop</span></div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <a href="/" style="color:var(--muted);font-size:.75rem;text-decoration:none;font-family:'Space Mono',monospace">← হোম</a>
+      <button class="ghost sm" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="num" id="totalLinks">0</div>
+        <div class="label">TOTAL LINKS</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" style="color:var(--green)">✓</div>
+        <div class="label">DOMAIN ACTIVE</div>
+      </div>
     </div>
 
-    <br>
-    <a href="/admin" class="admin-link">→ Admin Panel খোলো</a>
+    <!-- ADD FORM -->
+    <div class="card">
+      <h3>নতুন YouTube Link যোগ করো</h3>
+      <div class="add-form">
+        <div class="field">
+          <label>YOUTUBE URL</label>
+          <input type="url" id="urlInput" placeholder="https://youtube.com/watch?v=...">
+        </div>
+        <div class="field">
+          <label>SHORT SLUG — খালি রাখলে auto random slug হবে</label>
+          <div class="slug-wrap">
+            <div class="prefix-box">
+              <span class="pre">/</span>
+              <input type="text" id="slugInput" placeholder="video221  (optional — ফাঁকা রাখো random এর জন্য)">
+            </div>
+            <button class="ghost" onclick="generateRandom()" title="Random slug বানাও" style="padding:.65rem 1rem;font-size:1.1rem">🎲</button>
+          </div>
+        </div>
+        <button onclick="addLink()" style="align-self:flex-start;padding:.7rem 1.8rem">+ Link যোগ করো</button>
+      </div>
+    </div>
+
+    <!-- LINKS LIST -->
+    <div class="card">
+      <h3>সব Links</h3>
+      <div class="links-list" id="linksList">
+        <div class="empty">Loading...</div>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- QR MODAL -->
+<div id="qrModal" onclick="if(event.target===this)closeQR()">
+  <div class="qr-box">
+    <h4>QR Code</h4>
+    <div class="qr-slug" id="qrSlugLabel"></div>
+    <div id="qrCanvas"></div>
+    <div class="qr-actions">
+      <button class="ghost sm" onclick="downloadQR()">⬇ Download</button>
+      <button class="ghost sm" onclick="closeQR()">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let PASSWORD = '';
+  const API = '/api/admin';
+  const BASE = 'https://elecsy.shop';
+  let currentQRSlug = '';
+
+  // AUTH
+  function doLogin() {
+    PASSWORD = document.getElementById('passInput').value;
+    if (!PASSWORD) return toast('Password দাও!', true);
+    loadLinks();
+  }
+  function logout() {
+    PASSWORD = '';
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('passInput').value = '';
+  }
+
+  // RANDOM SLUG
+  function randomSlug() {
+    const num = Math.floor(Math.random() * 900) + 100;
+    return 'video' + num;
+  }
+  function generateRandom() {
+    document.getElementById('slugInput').value = randomSlug();
+  }
+
+  // API
+  async function apiFetch(method, body) {
+    const opts = { method, headers: { Authorization: `Bearer ${PASSWORD}`, 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API, opts);
+    if (r.status === 401) throw new Error('auth');
+    return r.json();
+  }
+
+  async function loadLinks() {
+    try {
+      const links = await apiFetch('GET');
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      renderLinks(links);
+    } catch { toast('Password ভুল!', true); }
+  }
+
+  function renderLinks(links) {
+    const keys = Object.keys(links);
+    document.getElementById('totalLinks').textContent = keys.length;
+    const list = document.getElementById('linksList');
+    if (!keys.length) { list.innerHTML = '<div class="empty">কোনো link নেই — উপরে যোগ করো!</div>'; return; }
+
+    list.innerHTML = keys.reverse().map(slug => `
+      <div class="link-item" id="item-${slug}">
+        <div class="link-top">
+          <div class="link-slug">/${slug}</div>
+          <div class="link-url" title="${links[slug]}">${links[slug]}</div>
+          <div class="link-actions">
+            <button class="ghost sm" onclick="copyLink('${slug}')">📋 Copy</button>
+            <button class="ghost sm" onclick="showQR('${slug}')">🔳 QR</button>
+            <button class="ghost sm" onclick="toggleRename('${slug}')">✏️ Rename</button>
+            <button class="danger sm" onclick="deleteLink('${slug}')">Delete</button>
+          </div>
+        </div>
+        <div class="rename-row" id="rename-${slug}">
+          <span style="font-family:'Space Mono',monospace;font-size:.8rem;color:var(--muted)">নতুন নাম /</span>
+          <input type="text" id="renameInput-${slug}" value="${slug}" placeholder="নতুন slug"
+            onkeydown="if(event.key==='Enter')renameLink('${slug}')">
+          <button class="sm" onclick="renameLink('${slug}')">✓ Save</button>
+          <button class="ghost sm" onclick="toggleRename('${slug}')">Cancel</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function addLink() {
+    const url = document.getElementById('urlInput').value.trim();
+    let slug = document.getElementById('slugInput').value.trim().replace(/^\//, '') || randomSlug();
+    if (!url) return toast('YouTube URL দাও!', true);
+    if (!url.includes('youtube.com') && !url.includes('youtu.be')) return toast('শুধু YouTube link দেওয়া যাবে!', true);
+
+    const data = await apiFetch('POST', { slug, url }).catch(e => ({ error: e.message }));
+    if (data.error) return toast(data.error, true);
+
+    document.getElementById('urlInput').value = '';
+    document.getElementById('slugInput').value = '';
+    toast(`✓ elecsy.shop/${slug} যোগ হয়েছে!`);
+    const links = await apiFetch('GET');
+    renderLinks(links);
+  }
+
+  async function deleteLink(slug) {
+    if (!confirm(`/${slug} delete করবে?`)) return;
+    const data = await apiFetch('DELETE', { slug });
+    if (data.error) return toast(data.error, true);
+    toast('✓ Delete হয়েছে');
+    const links = await apiFetch('GET');
+    renderLinks(links);
+  }
+
+  function toggleRename(slug) {
+    const row = document.getElementById(`rename-${slug}`);
+    row.classList.toggle('open');
+    if (row.classList.contains('open')) document.getElementById(`renameInput-${slug}`).focus();
+  }
+
+  async function renameLink(oldSlug) {
+    const newSlug = document.getElementById(`renameInput-${oldSlug}`).value.trim().replace(/^\//, '');
+    if (!newSlug || newSlug === oldSlug) return toggleRename(oldSlug);
+
+    const links = await apiFetch('GET');
+    const url = links[oldSlug];
+    if (!url) return toast('পাওয়া গেল না', true);
+
+    await apiFetch('DELETE', { slug: oldSlug });
+    const data = await apiFetch('POST', { slug: newSlug, url });
+    if (data.error) {
+      await apiFetch('POST', { slug: oldSlug, url }); // rollback
+      return toast(data.error, true);
+    }
+    toast(`✓ Rename: /${oldSlug} → /${newSlug}`);
+    const fresh = await apiFetch('GET');
+    renderLinks(fresh);
+  }
+
+  function copyLink(slug) {
+    navigator.clipboard.writeText(`${BASE}/${slug}`);
+    toast('✓ Link copied!');
+  }
+
+  // QR
+  function showQR(slug) {
+    currentQRSlug = slug;
+    const url = `${BASE}/${slug}`;
+    document.getElementById('qrSlugLabel').textContent = url;
+    const canvas = document.getElementById('qrCanvas');
+    canvas.innerHTML = '';
+    new QRCode(canvas, {
+      text: url,
+      width: 200,
+      height: 200,
+      colorDark: '#e63946',
+      colorLight: '#0f0f14',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    document.getElementById('qrModal').classList.add('open');
+  }
+
+  function closeQR() { document.getElementById('qrModal').classList.remove('open'); }
+
+  function downloadQR() {
+    const cvs = document.querySelector('#qrCanvas canvas');
+    if (!cvs) return toast('QR তৈরি হয়নি', true);
+    const a = document.createElement('a');
+    a.download = `elecsy-${currentQRSlug}.png`;
+    a.href = cvs.toDataURL('image/png');
+    a.click();
+    toast('✓ QR downloaded!');
+  }
+
+  // TOAST
+  function toast(msg, isErr = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' error' : '');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.className = 'toast', 2800);
+  }
+</script>
 </body>
 </html>
