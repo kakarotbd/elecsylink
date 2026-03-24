@@ -1,6 +1,7 @@
 {
   "version": 2,
   "rewrites": [
+    { "source": "/api/admin", "destination": "/api/admin" },
     { "source": "/admin", "destination": "/public/admin.html" },
     { "source": "/:slug", "destination": "/api/redirect?slug=:slug" }
   ]
