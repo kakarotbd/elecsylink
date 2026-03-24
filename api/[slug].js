@@ -1,4 +1,6 @@
-import links from '../links.json' assert { type: 'json' };
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const links = require('../links.json');
 
 export default function handler(req, res) {
   const { slug } = req.query;
